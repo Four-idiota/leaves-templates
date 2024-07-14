@@ -1,0 +1,79 @@
+{% extends 'dash/base.html' %}
+
+{% block active_home %}
+border-b-2 border-indigo-500
+{% endblock %}
+{% block a_home %}
+border-b-2 border-white text-sm
+{% endblock %}
+{% block page_name %} Home {% endblock%}
+
+
+{% block content %}
+<div class="max-w-3xl mx-auto ">
+    <!-- Single Post -->
+    <div class="bg-white shadow-lg rounded-lg mb-6">
+        <div class="p-6">
+            <div class="flex items-center space-x-4 mb-4">
+                <img class="h-12 w-12 rounded-full" src="https://loremflickr.com/40/40" alt="Profile">
+                <div>
+                    <h3 class="font-bold text-lg">Admin</h3>
+                    <p class="text-sm text-gray-500">2 hours ago</p>
+                </div>
+            </div>
+            <p class="text-gray-700">New policy updates have been released. Please check your email for more details.</p>
+            <div class="mt-4">
+                <img class="w-full rounded-lg" src="https://loremflickr.com/500/250/cat" alt="Announcement Image">
+            </div>
+        </div>
+    </div>
+
+    <!-- Announcement Post 2 (with Image) -->
+    <div class="bg-white shadow-lg rounded-lg mb-6">
+        <div class="p-6">
+            <div class="flex items-center space-x-4 mb-4">
+                <img class="h-12 w-12 rounded-full" src="https://loremflickr.com/40/40" alt="Profile">
+                <div>
+                    <h3 class="font-bold text-lg">HR Department</h3>
+                    <p class="text-sm text-gray-500">1 day ago</p>
+                </div>
+            </div>
+            <p class="text-gray-700">Reminder: Tomorrow is the deadline for submitting your quarterly performance review.</p>
+            <div class="mt-4">
+                <img class="w-full rounded-lg" src="https://loremflickr.com/500/250/dank" alt="Announcement Image">
+            </div>
+        </div>
+    </div>
+    <div class="bg-white shadow-lg rounded-lg mb-6">
+        <div class="p-6">
+            <div class="flex items-center space-x-4 mb-4">
+                <img class="h-12 w-12 rounded-full" src="https://loremflickr.com/40/40/secret" alt="Profile">
+                <div>
+                    <h3 class="font-bold text-lg">HR Department</h3>
+                    <p class="text-sm text-gray-500">1 day ago</p>
+                </div>
+            </div>
+            <p class="text-gray-700">Reminder: Tomorrow is the deadline for submitting your quarterly performance review.</p>
+            <div class="mt-4">
+                <img class="w-full rounded-lg" src="https://loremflickr.com/500/250/robin" alt="Announcement Image">
+            </div>
+        </div>
+    </div>
+    <div class="bg-white shadow-lg rounded-lg mb-6">
+        <div class="p-6">
+            <div class="flex items-center space-x-4 mb-4">
+                <img class="h-12 w-12 rounded-full" src="https://loremflickr.com/40/40" alt="Profile">
+                <div>
+                    <h3 class="font-bold text-lg">HR Department</h3>
+                    <p class="text-sm text-gray-500">1 day ago</p>
+                </div>
+            </div>
+            <p class="text-gray-700">Reminder: Tomorrow is the deadline for submitting your quarterly performance review.</p>
+            <div class="mt-4">
+                <img class="w-full rounded-lg" src="https://loremflickr.com/500/250/haikyuu" alt="Announcement Image">
+            </div>
+        </div>
+    </div>
+    <!-- Additional posts... -->
+</div>
+{% endblock %}

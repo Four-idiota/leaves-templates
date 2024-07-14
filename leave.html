@@ -1,0 +1,429 @@
+{% extends 'dash/base.html' %}
+{% block active_leave %}
+border-b-2 border-indigo-500
+{% endblock %}
+{% block a_leave %}
+border-b-2 border-white text-sm
+{% endblock %}
+{% block page_name %} Leaves {% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+<style>
+    .calendar {
+        width: 100%;
+        max-width: 600px;
+        margin: auto;
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    .calendar .header {
+        background-color: #218BC7;
+        color: white;
+        text-align: center;
+        padding: 10px;
+        font-size: 18px;
+        font-weight: bold;
+    }
+    .calendar .navigation {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 10px;
+        padding: 0 10px;
+    }
+    .calendar .prev,
+    .calendar .next {
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+        padding: 8px;
+    }
+    .calendar .days {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        gap: 2px;
+        background-color: #f7f7f7;
+        border-radius: 5px;
+        overflow: hidden;
+    }
+    .calendar .day {
+        padding: 12px 0;
+        text-align: center;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+        border: 1px solid transparent;
+    }
+    .calendar .day:hover {
+        background-color: #218BC7;
+    }
+    .calendar .selected-range {
+        position: relative;
+        background-color: #bee3f8;
+        overflow: hidden;
+    }
+    .calendar .selected-range:before {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%) rotate(45deg);
+        width: 70%;
+        height: 2px;
+    }
+    .calendar .weekend {
+        color: red;
+    }
+    .calendar .start-date,
+    .calendar .end-date {
+        background-color: #218BC7;
+        color: white;
+    }
+    .calendar .end-date {
+        border-radius: 0% 20% 20% 0%;
+    }
+    .calendar .start-date {
+        border-radius: 20% 0% 0% 20%;
+    }
+    .calendar .day-names {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        text-align: center;
+        font-weight: bold;
+        padding: 5px 0;
+        background-color: #f0f0f0;
+        border-top: 1px solid #ccc;
+        border-bottom: 1px solid #ccc;
+    }
+    .nav {
+        z-index: 1000;
+    }
+    .calendar .disabled {
+        background-color: #f0f0f0;
+        color: #aaa;
+        cursor: not-allowed;
+    }
+</style>
+{% endblock %}
+{% block content %}
+<div class="tabs flex border-b mb-4">
+    <a href="?tab=leave" class="tab w-full text-center py-2 px-4 text-lg font-semibold border-b-2 border-transparent focus:outline-none active-tab" data-tab="leave-management">Leave Management</a>
+    <a href="?tab=timecard" class="tab w-full text-center py-2 px-4 text-lg font-semibold border-b-2 border-transparent focus:outline-none" data-tab="timecard">Timecard</a>
+</div>
+<div class="{% if not request.GET.tab or request.GET.tab == 'leave' %}block{% else %}hidden{% endif %}">
+    <div class="bg-white shadow-sm rounded-lg mb-6 p-6 border-2 border-blue-200 ">
+        <h2 class="text-2xl font-bold mb-4">Manage Leaves</h2>
+        <!-- Leave Request Form -->
+        <form class="space-y-4" method="post">
+            {% csrf_token %}
+            <div class="flex items-center space-x-4">
+                <div class="calendar-container mb-4 w-full">
+                    <section id="calendar" class="py-10">
+                        <div class="calendar">
+                            <div class="header bg-green-500 text-white py-2 rounded-t-lg">
+                                <div class="navigation flex justify-between items-center px-4">
+                                    <div class="prev text-lg cursor-pointer"><i class="fas fa-chevron-left"></i></div>
+                                    <div class="month-year text-lg font-semibold"></div>
+                                    <div class="next text-lg cursor-pointer"><i class="fas fa-chevron-right"></i></div>
+                                </div>
+                            </div>
+                            <div class="day-names">
+                                <div>Sun</div>
+                                <div>Mon</div>
+                                <div>Tue</div>
+                                <div>Wed</div>
+                                <div>Thu</div>
+                                <div>Fri</div>
+                                <div>Sat</div>
+                            </div>
+                            <div class="days grid grid-cols-7 gap-1 py-2"></div>
+                        </div>
+                    </section>
+                </div>
+            </div>
+            <div class="flex items-center space-x-4">
+                <label for="leaveType" class="w-32 text-gray-700">Leave Type:</label>
+                <select id="leaveType" name="leaveType" class="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500" required>
+                    <option value="WO">Weekly Off</option>
+                    <option value="CO">Comp Off</option>
+                    <option value="SLP">Short Leave Present</option>
+                    <option value="HD">Half Day</option>
+                    <option value="PL">Privileged Leave</option>
+                </select>
+            </div>
+            <div class="flex items-center space-x-4">
+                <label for="start-date" class="w-32 text-gray-700">Start Date:</label>
+                <input type="date" id="start-date" name="start-date" class="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500" required>
+            </div>
+            <div class="flex items-center space-x-4">
+                <label for="end-date" class="w-32 text-gray-700">End Date:</label>
+                <input type="date" id="end-date" name="end-date" class="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500" required>
+            </div>
+            <div class="flex items-center space-x-4">
+                <label for="reason" class="w-32 text-gray-700">Reason:</label>
+                <textarea id="reason" name="reason" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"></textarea>
+            </div>
+            <div class="flex justify-end">
+                <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 focus:outline-none focus:bg-blue-600">Submit</button>
+            </div>
+        </form>
+    </div>
+
+    <div class="bg-white shadow-sm rounded-lg mb-6 p-6">
+        <h2 class="text-2xl font-bold mb-4">Pending Leave Requests</h2>
+        <div class="overflow-x-auto">
+            <table class="min-w-full bg-white">
+                <thead class="bg-gray-200 text-gray-600">
+                    <tr>
+                        <th class="w-1/4 px-6 py-3 border-b border-gray-300">Leave Type</th>
+                        <th class="w-1/4 px-6 py-3 border-b border-gray-300">Start Date</th>
+                        <th class="w-1/4 px-6 py-3 border-b border-gray-300">End Date</th>
+                        <th class="w-1/4 px-6 py-3 border-b border-gray-300">Reason</th>
+                        <th class="w-1/4 px-6 py-3 border-b border-gray-300">Action </th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for request in leave_requests %}
+                    <tr id="leave-request-{{request.id}}">
+                        <td class="w-1/4 px-6 py-4 border-b border-gray-300">{{ request.type }}</td>
+                        <td class="w-1/4 px-6 py-4 border-b border-gray-300">{{ request.start_date }}</td>
+                        <td class="w-1/4 px-6 py-4 border-b border-gray-300">{{ request.end_date }}</td>
+                        <td class="w-1/4 px-6 py-4 border-b border-gray-300">{{ request.reason }}</td>
+                        <td class="w-1/4 px-6 py-4 border-b border-gray-300">
+                            
+                                {% csrf_token %}
+                                <button type="submit" onclick="deleteLeaveRequest('{{ request.id }}')" class="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 focus:outline-none focus:bg-red-600">Delete</button>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="px-6 py-4 text-center text-gray-500">No leave requests found.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+
+            </table>
+        </div>
+    </div>
+</div>
+
+{% comment %} <div class="{% if request.GET.tab == 'timecard' %}block{% else %}hidden{% endif %}">
+    {% include "dash/timecard.html" %}
+</div> {% endcomment %}
+
+{% endblock %}
+
+{% block extra_js%}
+
+<script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+<script>
+     function deleteLeaveRequest(requestId) {
+        // Remember current scroll position
+        const scrollPosition = window.scrollY;
+
+        // Send AJAX request to delete leave request
+        fetch(`/dashboard/leave/delete/${requestId}/`, {
+            method: 'DELETE',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}',
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => {
+            if (response.ok) {
+                // Show success message
+                Toastify({
+                    text: 'Leave request deleted successfully.',
+                    duration: 3000,
+                    close: true,
+                    gravity: 'top',
+                    position: 'right',
+                    backgroundColor: '#218BC7',
+                    stopOnFocus: true,
+                }).showToast();
+
+                // Restore scroll position after delete
+                window.scrollTo(0, scrollPosition);
+                const rowToRemove = document.getElementById(`leave-request-${requestId}`);
+                if (rowToRemove) {
+                    rowToRemove.remove();
+                }
+                // Optionally, update the UI to reflect deletion (remove the row from table, etc.)
+                // Reload the page or update the UI as needed
+            } else {
+                // Show error message
+                Toastify({
+                    text: 'Failed to delete leave request.',
+                    duration: 3000,
+                    close: true,
+                    gravity: 'top',
+                    position: 'right',
+                    backgroundColor: '#FF6347',
+                    stopOnFocus: true,
+                }).showToast();
+            }
+        })
+        .catch(error => {
+            console.error('Error deleting leave request:', error);
+        });
+    }
+        // Initialize calendar with current month and year
+   
+
+{{ block.super }}
+
+    {% if messages %}
+        {% for message in messages %}
+            Toastify({
+                text: "{{ message }}",
+                duration: 3000,  
+                close: true,
+                gravity: "top", // `top` or `bottom`
+                position: 'right', // `left`, `center` or `right`
+                backgroundColor: "#218BC7", // Background color of the toast
+                stopOnFocus: true, 
+            }).showToast();
+        {% endfor %}
+    {% endif %}
+    </script>
+    
+<script>
+    const appliedDates = {{ applied_dates|safe }};
+    let currentDate = new Date();
+    let currentMonth = currentDate.getMonth();
+    let currentYear = currentDate.getFullYear();
+    let startDate = null;
+    let endDate = null;
+
+    function updateCalendar() {
+        const daysElement = document.querySelector('.calendar .days');
+        daysElement.innerHTML = '';
+
+        const monthYearElement = document.querySelector('.calendar .month-year');
+        monthYearElement.textContent = `${getMonthName(currentMonth)} ${currentYear}`;
+
+        const firstDay = new Date(currentYear, currentMonth, 1);
+        const startingDay = firstDay.getDay();
+        const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+
+        for (let i = 0; i < startingDay; i++) {
+            let emptyElement = document.createElement('div');
+            daysElement.appendChild(emptyElement);
+        }
+
+        for (let day = 1; day <= daysInMonth; day++) {
+            let dayElement = document.createElement('div');
+            dayElement.classList.add('day', 'border', 'border-gray-300', 'cursor-pointer');
+            dayElement.textContent = day;
+
+            let currentDateStr = `${currentYear}-${padZero(currentMonth + 1)}-${padZero(day)}`;
+            if (isDateInAppliedRange(currentDateStr)) {
+                dayElement.classList.add('disabled');
+                dayElement.classList.remove('cursor-pointer');
+                dayElement.style.backgroundColor = '#ccc'; // Or any color to indicate disabled dates
+                dayElement.removeEventListener('click', function () {
+                    handleDayClick(day);
+                });
+            } else {
+                dayElement.addEventListener('click', function () {
+                    handleDayClick(day);
+                });
+            }
+
+            daysElement.appendChild(dayElement);
+
+            let dayOfWeek = (startingDay + day - 1) % 7;
+            if (dayOfWeek === 0 || dayOfWeek === 6) {
+                dayElement.classList.add('weekend');
+            }
+
+            if (startDate && endDate) {
+                let selectedDate = new Date(currentYear, currentMonth, day);
+                if (selectedDate >= startDate && selectedDate <= endDate) {
+                    dayElement.classList.add('selected-range');
+                }
+            }
+
+            if (startDate && day === startDate.getDate() && currentMonth === startDate.getMonth() && currentYear === startDate.getFullYear()) {
+                dayElement.classList.add('start-date');
+            }
+
+            if (endDate && day === endDate.getDate() && currentMonth === endDate.getMonth() && currentYear === endDate.getFullYear()) {
+                dayElement.classList.add('end-date');
+            }
+        }
+    }
+
+    function handleDayClick(day) {
+        let selectedDate = new Date(currentYear, currentMonth, day);
+
+        if (!startDate) {
+            startDate = selectedDate;
+            document.getElementById('start-date').value = `${selectedDate.getFullYear()}-${padZero(selectedDate.getMonth() + 1)}-${padZero(selectedDate.getDate())}`;
+        } else if (!endDate) {
+            if (selectedDate < startDate) {
+                endDate = startDate;
+                startDate = selectedDate;
+            } else {
+                endDate = selectedDate;
+            }
+            document.getElementById('start-date').value = `${startDate.getFullYear()}-${padZero(startDate.getMonth() + 1)}-${padZero(startDate.getDate())}`;
+            document.getElementById('end-date').value = `${endDate.getFullYear()}-${padZero(endDate.getMonth() + 1)}-${padZero(endDate.getDate())}`;
+        } else {
+            startDate = selectedDate;
+            endDate = null;
+            document.getElementById('start-date').value = `${startDate.getFullYear()}-${padZero(startDate.getMonth() + 1)}-${padZero(startDate.getDate())}`;
+            document.getElementById('end-date').value = '';
+        }
+
+        updateCalendar();
+    }
+
+    function padZero(num) {
+        return (num < 10 ? '0' : '') + num;
+    }
+
+    function getMonthName(monthIndex) {
+        const monthNames = [
+            'January', 'February', 'March', 'April', 'May', 'June',
+            'July', 'August', 'September', 'October', 'November', 'December'
+        ];
+        return monthNames[monthIndex];
+    }
+
+    function isDateInAppliedRange(dateStr) {
+        for (let dateRange of appliedDates) {
+            let startDate = new Date(dateRange.start_date);
+            let endDate = new Date(dateRange.end_date);
+            let checkDate = new Date(dateStr);
+
+            if (checkDate >= startDate && checkDate <= endDate) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    document.querySelector('.calendar .prev').addEventListener('click', function () {
+        currentMonth--;
+        if (currentMonth < 0) {
+            currentMonth = 11;
+            currentYear--;
+        }
+        updateCalendar();
+    });
+
+    document.querySelector('.calendar .next').addEventListener('click', function () {
+        currentMonth++;
+        if (currentMonth > 11) {
+            currentMonth = 0;
+            currentYear++;
+        }
+        updateCalendar();
+    });
+
+    updateCalendar();
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.9.0/main.min.js"></script>
+{% endblock %}

@@ -1,0 +1,100 @@
+{% extends "dash/base.html" %}
+{% block active_manage %}
+border-b-2 border-indigo-500
+{% endblock %}
+
+
+{% block content %}
+<div class="bg-white shadow overflow-hidden sm:rounded-lg p-4">
+    <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">
+        Leave Requests
+    </h3>
+    
+    <div class="overflow-x-auto">
+        <table class="min-w-full bg-white">
+            <thead>
+                <tr>
+                    <th class="px-6 py-3 border-b-2 border-gray-300 text-left leading-4 text-gray-800 tracking-wider">Employee</th>
+                    <th class="px-6 py-3 border-b-2 border-gray-300 text-left leading-4 text-gray-800 tracking-wider">Leave Type</th>
+                    <th class="px-6 py-3 border-b-2 border-gray-300 text-left leading-4 text-gray-800 tracking-wider">Dates</th>
+                    <th class="px-6 py-3 border-b-2 border-gray-300 text-left leading-4 text-gray-800 tracking-wider">Reason</th>
+                    <th class="px-6 py-3 border-b-2 border-gray-300 text-left leading-4 text-gray-800 tracking-wider">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for leave_request in leave_requests %}
+                <tr id="leave_request_{{ leave_request.id }}">
+                    <td class="px-6 py-4 border-b border-gray-300">{{ leave_request.user.name }}</td>
+                    <td class="px-6 py-4 border-b border-gray-300">{{ leave_request.type }}</td>
+                    <td class="px-6 py-4 border-b border-gray-300">{{ leave_request.start_date }} to {{ leave_request.end_date }}</td>
+                    <td class="px-6 py-4 border-b border-gray-300">{{ leave_request.reason }}</td>
+                    <td class="px-6 py-4 border-b border-gray-300">
+                        <div class="flex flex-row space-x-4">
+                            <button class="text-green-500 hover:text-green-700 approve-leave"
+                               onclick="approveLeaveRequest('{{ leave_request.id }}')">
+                                <i class="fas fa-check"></i>
+                            </button>
+                            <button class="text-red-500 hover:text-red-700 reject-leave"
+                               onclick="rejectLeaveRequest('{{ leave_request.id }}')">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="5" class="px-6 py-4 border-b border-gray-300 text-center text-gray-500">No leave requests found.</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function approveLeaveRequest(requestId) {
+        handleLeaveAction(`/dashboard/approve-leave/${requestId}/`, 'Leave request approved', '#00b09b', requestId);
+    }
+
+    function rejectLeaveRequest(requestId) {
+        handleLeaveAction(`/dashboard/reject-leave/${requestId}/`, 'Leave request rejected', '#e74c3c', requestId);
+    }
+
+    function handleLeaveAction(url, successMessage, backgroundColor, requestId) {
+        fetch(url, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}',
+                'Content-Type': 'application/json'
+            },
+        })
+        .then(response => {
+            if (response.ok) {
+                Toastify({
+                    text: successMessage,
+                    backgroundColor: backgroundColor,
+                    duration: 3000
+                }).showToast();
+                document.getElementById(`leave_request_${requestId}`).remove();
+            } else {
+                Toastify({
+                    text: 'Failed to process the request',
+                    backgroundColor: '#ff0000',
+                    duration: 3000
+                }).showToast();
+            }
+        })
+        .catch(error => {
+            console.error('Error processing leave request:', error);
+            Toastify({
+                text: 'An error occurred while processing the request',
+                backgroundColor: '#ff0000',
+                duration: 3000
+            }).showToast();
+        });
+    }
+</script>
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+{% endblock %}

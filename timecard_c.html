@@ -1,0 +1,198 @@
+{% extends 'dash/base.html' %}
+{% block active_leave %}
+border-b-2 border-indigo-500
+{% endblock %}
+{% block a_leave %}
+border-b-2 border-white text-sm
+{% endblock %}
+{% block page_name %} All Leaves {% endblock %}
+{% block extra_css %}
+<link href='https://cdn.jsdelivr.net/npm/fullcalendar@5.10.2/main.min.css' rel='stylesheet' />
+<style>
+#calendar {
+    font-family: Arial, sans-serif;
+    max-width: 600px; /* Adjust as needed */
+    margin: 0 auto; /* Center the calendar */
+    padding: 20px;
+    background-color: #f7fafc; /* Light gray background */
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Shadow for depth */
+}
+
+/* Styles for calendar days */
+.day {
+    width: calc(100% / 7); /* Equal width for each day */
+    text-align: center;
+    padding: 10px;
+    border: 1px solid #ddd; /* Light border */
+}
+
+/* Styles for header (month and navigation) */
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+/* Styles for buttons */
+.prev, .next {
+    cursor: pointer;
+    padding: 5px 10px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 5px;
+}
+
+.prev:hover, .next:hover {
+    background-color: #0056b3;
+}
+
+/* Styles for weeks and days */
+.week {
+    display: flex;
+}
+
+.event {
+    background-color: #007bff;
+    color: white;
+    border-radius: 50%;
+    width: 25px;
+    height: 25px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: auto;
+}
+</style>
+{% endblock %}
+{% block content %}
+<div id="calendar"></div>
+{% endblock %}
+{% block extra_js %}
+<script src='https://cdn.jsdelivr.net/npm/fullcalendar@5.10.2/main.min.js'></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const calendarEl = document.getElementById('calendar');
+    const calendar = createCalendar(calendarEl);
+
+    // Example event data
+    const events = [
+        { date: '2024-07-15', title: 'Event 1', description: 'Description of Event 1' },
+        { date: '2024-07-20', title: 'Event 2', description: 'Description of Event 2' }
+        // Add more events as needed
+    ];
+
+    // Render the calendar with events
+    renderCalendar(calendar, events);
+});
+
+function createCalendar(container) {
+    const header = document.createElement('div');
+    header.className = 'header';
+
+    const prevButton = document.createElement('button');
+    prevButton.className = 'prev';
+    prevButton.textContent = 'Prev';
+
+    const nextButton = document.createElement('button');
+    nextButton.className = 'next';
+    nextButton.textContent = 'Next';
+
+    const title = document.createElement('h2');
+    title.className = 'title';
+
+    header.appendChild(prevButton);
+    header.appendChild(title);
+    header.appendChild(nextButton);
+
+    container.appendChild(header);
+
+    const weeksContainer = document.createElement('div');
+    weeksContainer.className = 'weeks-container';
+
+    // Create day elements
+    const daysOfWeek = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    for (let day of daysOfWeek) {
+        const dayHeader = document.createElement('div');
+        dayHeader.className = 'day-header';
+        dayHeader.textContent = day;
+        weeksContainer.appendChild(dayHeader);
+    }
+
+    // Create weeks
+    for (let i = 0; i < 6; i++) { // Assuming 6 weeks for display
+        const week = document.createElement('div');
+        week.className = 'week';
+        for (let j = 0; j < 7; j++) {
+            const day = document.createElement('div');
+            day.className = 'day';
+            day.textContent = ''; // Placeholder for day number
+            week.appendChild(day);
+        }
+        weeksContainer.appendChild(week);
+    }
+
+    container.appendChild(weeksContainer);
+
+    return {
+        header,
+        title,
+        weeksContainer
+    };
+}
+
+function renderCalendar(calendar, events) {
+    const weeks = calendar.weeksContainer.querySelectorAll('.week');
+    let currentDate = new Date();
+    let currentMonth = currentDate.getMonth();
+    let monthOffset = 0;
+
+    function updateCalendar() {
+        const firstDayOfMonth = new Date(currentDate.getFullYear(), currentMonth + monthOffset, 1);
+        const lastDayOfMonth = new Date(currentDate.getFullYear(), currentMonth + monthOffset + 1, 0);
+
+        calendar.title.textContent = `${firstDayOfMonth.toLocaleString('default', { month: 'long' })} ${firstDayOfMonth.getFullYear()}`;
+
+        // Clear previous dates and events
+        weeks.forEach(week => week.innerHTML = '');
+
+        // Create day elements
+        for (let i = 1; i <= lastDayOfMonth.getDate(); i++) {
+            const day = document.createElement('div');
+            day.className = 'day';
+            day.textContent = i;
+
+            // Highlight days with events
+            const eventDay = events.find(event => {
+                const eventDate = new Date(event.date);
+                return eventDate.getFullYear() === firstDayOfMonth.getFullYear() &&
+                       eventDate.getMonth() === firstDayOfMonth.getMonth() &&
+                       eventDate.getDate() === i;
+            });
+
+            if (eventDay) {
+                const eventMarker = document.createElement('div');
+                eventMarker.className = 'event';
+                eventMarker.textContent = '•';
+                day.appendChild(eventMarker);
+            }
+
+            weeks[firstDayOfMonth.getDay()].appendChild(day);
+        }
+    }
+
+    updateCalendar();
+
+    calendar.header.addEventListener('click', function(event) {
+        if (event.target.classList.contains('prev')) {
+            monthOffset--;
+        } else if (event.target.classList.contains('next')) {
+            monthOffset++;
+        }
+        updateCalendar();
+    });
+}
+</script>
+{% endblock %}

@@ -1,0 +1,45 @@
+{% extends 'dash/base.html' %}
+
+{% block page_name %} Profile {% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Custom styles specific to the profile page */
+    .profile-card {
+        border: 1px solid #e2e8f0;
+        border-radius: 0.5rem;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+    .profile-avatar {
+        width: 100px;
+        height: 100px;
+        border-radius: 50%;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="bg-white shadow-sm rounded-lg mb-6 p-6">
+    <h2 class="text-2xl font-bold mb-4">User Profile</h2>
+
+    <div class="profile-card flex items-center space-x-4 p-4">
+        <img class="profile-avatar" src="https://via.placeholder.com/100X100" alt="Profile Image">
+        <div>
+            <h3 class="text-xl font-semibold">{{ user.username }}</h3>
+            <p class="text-gray-600">{{ user.email }}</p>
+            <p class="text-gray-600">Role: {{ user.role }}</p>
+            <!-- Add other user details as needed -->
+        </div>
+    </div>
+
+    <div class="mt-4">
+        <!-- Additional user information section -->
+        <h3 class="text-lg font-semibold mb-2">Additional Information</h3>
+        <p class="text-gray-600">Phone: {{ user.phone }}</p>
+        <!-- Add more fields like address, bio, etc. -->
+    </div>
+
+    <!-- Logout button -->
+    <a href="{% url 'logout' %}" class="bg-red-500 hover:bg-red-600 text-white py-2 px-4 rounded mt-4 inline-block">Logout</a>
+</div>
+{% endblock %}
